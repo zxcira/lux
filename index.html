@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUX — баня, хаммам и сауна в Снежинске</title>
+<meta name="description" content="LUX — баня на Сиреневой, 5 в Снежинске: турецкий хаммам, европейская сауна, бассейн и купель. Веники, простыни, чай. Бронирование по телефону +7 (35146) 4-95-49.">
+<meta name="theme-color" content="#0C0A08">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   LUX — баня на Сиреневой, Снежинск
+   Концепция «ПЕЧЬ»: весь сайт — это печь.
+   Сверху жар, снизу — холод: термометр справа опускается
+   вместе с прокруткой (+90° → −5°).
+   ============================================================ */
+:root{
+  --bg:#0C0A08;
+  --bg-cold:#07100F;
+  --surface:#17120C;
+  --surface-2:#221A11;
+  --line:#33261A;
+  --line-2:#46351F;
+
+  --fg:#F6F0E7;
+  --fg-2:#D9CCB9;
+  --muted:#9E917C;
+
+  --ember:#E3A45A;
+  --ember-2:#C67E32;
+  --ember-3:#F0B470;
+  --aqua:#63BDB2;
+  --aqua-2:#3E8E86;
+  --brass:#C8A15C;
+
+  --maxw:1200px;
+  --gutter:clamp(18px,4vw,48px);
+  --r:16px;
+  --t:200ms cubic-bezier(.2,.7,.3,1);
+  --nav-h:70px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:"Golos Text",system-ui,sans-serif;
+  font-size:17px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,blockquote{font-family:"Prata",Georgia,serif;font-weight:400;line-height:1.12;margin:0}
+p{margin:0}
+::selection{background:var(--ember);color:#160F08}
+:focus-visible{outline:2px solid var(--ember);outline-offset:3px;border-radius:4px}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding-inline:var(--gutter)}
+.eyebrow{font-size:12px;letter-spacing:.16em;color:var(--brass);text-transform:uppercase;font-weight:600}
+.lead{color:var(--fg-2);max-width:62ch}
+.temp{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:600}
+.temp::before{content:"";width:22px;height:1px;background:currentColor;opacity:.6}
+
+/* ------------------------------- АТМОСФЕРА ПЕЧИ ------------------------------- */
+.atmos{position:fixed;inset:0;z-index:-2;pointer-events:none}
+.atmos__hot,.atmos__cold{position:absolute;inset:0}
+.atmos__hot{
+  background:
+    radial-gradient(90% 55% at 50% -8%, rgba(227,164,90,.30), transparent 62%),
+    radial-gradient(60% 45% at 88% 16%, rgba(198,126,50,.14), transparent 60%),
+    linear-gradient(180deg,#120C07,#0C0A08);
+}
+.atmos__cold{
+  opacity:0;
+  background:
+    radial-gradient(90% 55% at 50% 108%, rgba(99,189,178,.22), transparent 64%),
+    linear-gradient(180deg,#0A0C0B,#07100F);
+}
+
+/* анимированный пар (canvas) */
+.steam{position:fixed;inset:0;z-index:-1;width:100%;height:100%;pointer-events:none;opacity:.7}
+
+/* ------------------------------- ТЕРМОМЕТР ------------------------------- */
+.thermo{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:40;
+  display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;user-select:none}
+.thermo__read{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;color:var(--fg);
+  background:rgba(12,10,8,.62);border:1px solid var(--line);padding:3px 9px;border-radius:999px;
+  backdrop-filter:blur(6px);min-width:56px;text-align:center}
+.thermo__body{display:flex;align-items:stretch;gap:8px}
+.thermo__ticks{display:flex;flex-direction:column;justify-content:space-between;height:240px;
+  font-size:10px;letter-spacing:.02em;color:var(--muted);font-variant-numeric:tabular-nums}
+.thermo__tube{position:relative;width:8px;height:240px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+.thermo__mercury{position:absolute;left:0;right:0;bottom:0;height:100%;border-radius:999px;background:var(--ember)}
+.thermo__bulb{width:18px;height:18px;margin-top:-7px;border-radius:50%;background:var(--ember);
+  border:1px solid var(--line);box-shadow:0 0 16px rgba(227,164,90,.5)}
+
+/* ------------------------------- КНОПКИ ------------------------------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:52px;padding:0 26px;border-radius:999px;font-family:inherit;font-size:16px;font-weight:600;
+  cursor:pointer;border:1px solid transparent;transition:transform var(--t),background var(--t),border-color var(--t),color var(--t)}
+.btn svg{width:18px;height:18px;flex:none}
+.btn--hot{background:var(--ember);color:#1A1006}
+.btn--hot:hover{background:var(--ember-3);transform:translateY(-1px)}
+.btn--ghost{background:transparent;color:var(--fg);border-color:var(--line-2)}
+.btn--ghost:hover{border-color:var(--brass);color:#fff}
+
+/* ------------------------------- ШАПКА ------------------------------- */
+.header{position:sticky;top:0;z-index:50;background:rgba(12,10,8,.72);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(200,161,92,.14)}
+.header__in{display:flex;align-items:center;gap:22px;min-height:var(--nav-h)}
+.logo{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.logo__mark{font-family:"Prata",serif;font-size:26px;letter-spacing:.14em}
+.logo__sub{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--brass)}
+.nav{display:flex;gap:24px;font-size:15px}
+.nav a{color:var(--fg-2);transition:color var(--t)}
+.nav a:hover{color:#fff}
+.header__phone{display:inline-flex;align-items:center;gap:8px;color:var(--fg);font-weight:600;font-size:15px}
+.header__phone svg{width:16px;height:16px;color:var(--ember)}
+.burger{display:none;width:46px;height:46px;border:1px solid var(--line-2);background:transparent;border-radius:12px;
+  color:var(--fg);cursor:pointer;align-items:center;justify-content:center}
+.burger svg{width:22px;height:22px}
+.mnav{position:fixed;left:0;right:0;top:var(--nav-h);z-index:49;background:#100D0A;border-bottom:1px solid var(--line);
+  display:none;padding:12px var(--gutter) 20px}
+.mnav[data-open]{display:block}
+.mnav a{display:block;padding:14px 0;border-bottom:1px solid var(--line);font-size:18px}
+
+/* ------------------------------- ГЕРОЙ ------------------------------- */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;
+  overflow:hidden;isolation:isolate}
+.hero__bg{position:absolute;inset:0;z-index:-2;background:url("img/hero.jpg") center 38%/cover no-repeat;opacity:.5}
+.hero__veil{position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(12,10,8,.62) 0%,rgba(12,10,8,.30) 38%,rgba(12,10,8,.82) 76%,var(--bg) 100%)}
+.hero__in{position:relative;z-index:1;width:100%;padding-block:clamp(72px,12vw,140px) clamp(64px,10vw,120px)}
+.hero h1{font-size:clamp(2.7rem,7.6vw,6rem);letter-spacing:-.01em;margin-top:18px}
+.hero h1 em{font-style:normal;color:var(--ember)}
+.hero .lead{margin-top:22px;font-size:clamp(1rem,1.4vw,1.18rem);max-width:52ch}
+.hero__cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
+
+/* ------------------------------- СЕКЦИИ ------------------------------- */
+.sec{padding-block:clamp(64px,9vw,130px);scroll-margin-top:var(--nav-h)}
+.sec--top{padding-top:clamp(48px,7vw,96px)}
+.sec__head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:44px;flex-wrap:wrap}
+.sec__head h2{font-size:clamp(1.9rem,4vw,3.1rem)}
+.rule{height:1px;background:linear-gradient(90deg,var(--line-2),transparent);margin-block:clamp(8px,2vw,24px)}
+
+/* атмосфера */
+.about{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,5vw,72px);align-items:center}
+.about h2{font-size:clamp(1.9rem,4vw,3.1rem);margin-bottom:22px}
+.about blockquote{font-size:clamp(1.15rem,1.8vw,1.5rem);color:var(--fg);border-left:2px solid var(--ember);
+  padding-left:22px;margin:0}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}
+.fact{border:1px solid var(--line);border-radius:var(--r);padding:20px;background:linear-gradient(180deg,var(--surface),transparent)}
+.fact b{display:block;font-family:"Prata",serif;font-size:30px;color:var(--ember)}
+.fact span{font-size:14px;color:var(--muted)}
+.about__photo{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);aspect-ratio:4/5}
+.about__photo img{width:100%;height:100%;object-fit:cover}
+.about__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(12,10,8,.6))}
+
+/* залы */
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.zone{position:relative;border:1px solid var(--line);border-radius:20px;padding:30px 28px 34px;overflow:hidden;
+  background:linear-gradient(180deg,var(--surface),var(--bg));transition:border-color var(--t),transform var(--t)}
+.zone:hover{border-color:var(--brass);transform:translateY(-3px)}
+.zone--hot{background:radial-gradient(70% 90% at 15% 0%,rgba(227,164,90,.16),transparent 60%),linear-gradient(180deg,var(--surface),var(--bg))}
+.zone--steam{background:radial-gradient(70% 90% at 15% 0%,rgba(198,126,50,.14),transparent 60%),linear-gradient(180deg,var(--surface),var(--bg))}
+.zone__ico{width:44px;height:44px;color:var(--ember);margin-bottom:18px}
+.zone h3{font-size:1.5rem;margin-bottom:10px}
+.zone p{color:var(--fg-2);font-size:15.5px}
+.zone__price{margin-top:18px;font-family:"Prata",serif;font-size:1.5rem;color:var(--ember)}
+.zone__price small{font-family:"Golos Text";font-size:13px;color:var(--muted);font-weight:400}
+
+/* доп услуги */
+.extras{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.extra{border:1px solid var(--line);border-radius:var(--r);padding:20px;background:var(--surface);
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.extra b{font-weight:600;font-size:15.5px}
+.extra span{font-family:"Prata",serif;color:var(--ember);white-space:nowrap}
+.facil{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:1px solid var(--line-2);border-radius:999px;padding:8px 16px;font-size:14px;color:var(--fg-2);
+  display:inline-flex;align-items:center;gap:8px}
+.chip svg{width:15px;height:15px;color:var(--aqua)}
+
+/* цены */
+.price-wrap{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+table.prices{width:100%;border-collapse:collapse;font-size:15.5px}
+.prices th,.prices td{padding:16px 20px;text-align:left;border-bottom:1px solid var(--line)}
+.prices th{font-family:"Golos Text";font-weight:600;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+.prices tr:last-child td{border-bottom:0}
+.prices td:last-child{text-align:right;white-space:nowrap;font-weight:600;color:var(--ember)}
+.prices small{display:block;color:var(--muted);font-weight:400}
+.price-note{margin-top:16px;font-size:14px;color:var(--muted)}
+.price-note a{color:var(--ember);text-decoration:underline;text-underline-offset:3px}
+
+/* ------------------------------- ГАЛЕРЕЯ-КАРУСЕЛЬ ------------------------------- */
+.carousel{position:relative;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#0e0b09;touch-action:pan-y}
+.carousel__viewport{position:relative;aspect-ratio:16/9;overflow:hidden}
+.carousel__viewport::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,transparent 58%,rgba(8,7,6,.72))}
+.carousel__track{display:flex;height:100%;transition:transform 600ms cubic-bezier(.22,.61,.36,1);will-change:transform}
+.carousel__slide{position:relative;flex:0 0 100%;height:100%;overflow:hidden;margin:0}
+.carousel__slide::before{content:"";position:absolute;inset:-12%;background-image:var(--bg);background-size:cover;
+  background-position:center;filter:blur(34px) brightness(.45) saturate(1.1);transform:scale(1.12)}
+.carousel__slide img{position:relative;width:100%;height:100%;object-fit:contain;
+  -webkit-user-drag:none;user-select:none;pointer-events:none}
+.carousel__cap{position:absolute;left:0;bottom:0;z-index:2;padding:18px 22px;color:#fff}
+.carousel__cap b{font-family:"Prata",serif;font-weight:400;font-size:1.15rem;text-shadow:0 1px 10px rgba(0,0,0,.7)}
+.carousel__count{position:absolute;right:18px;bottom:18px;z-index:2;font-size:12px;letter-spacing:.14em;
+  color:var(--fg-2);font-variant-numeric:tabular-nums;text-shadow:0 1px 8px rgba(0,0,0,.7)}
+.carousel__btn{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.25);background:rgba(12,10,8,.5);backdrop-filter:blur(8px);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background var(--t),border-color var(--t)}
+.carousel__btn:hover{background:rgba(12,10,8,.82);border-color:var(--brass)}
+.carousel__btn svg{width:20px;height:20px}
+.carousel__btn--prev{left:14px}
+.carousel__btn--next{right:14px}
+.carousel__dots{position:absolute;left:50%;top:16px;transform:translateX(-50%);z-index:3;display:flex;gap:8px}
+.carousel__dot{width:8px;height:8px;border-radius:50%;border:0;padding:0;cursor:pointer;
+  background:rgba(255,255,255,.35);transition:background var(--t),width var(--t)}
+.carousel__dot[aria-current="true"]{background:var(--ember);width:22px;border-radius:99px}
+
+/* отзывы */
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.review{border:1px solid var(--line);border-radius:var(--r);padding:26px;background:var(--surface);display:flex;flex-direction:column}
+.review p{font-family:"Prata",serif;font-size:1.12rem;line-height:1.5;color:var(--fg);flex:1}
+.review cite{display:block;margin-top:18px;font-style:normal;font-size:14px;color:var(--muted)}
+
+/* контакты */
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,64px);align-items:center;
+  border:1px solid var(--line);border-radius:24px;padding:clamp(28px,5vw,56px);
+  background:
+    radial-gradient(60% 120% at 100% 100%,rgba(99,189,178,.16),transparent 60%),
+    radial-gradient(50% 100% at 0 0,rgba(227,164,90,.10),transparent 55%),
+    var(--surface)}
+.contact h2{font-size:clamp(1.8rem,3.6vw,2.8rem);margin-bottom:14px}
+.crows{margin:26px 0 30px;display:grid;gap:14px}
+.crow{display:flex;gap:14px;align-items:flex-start;color:var(--fg-2)}
+.crow svg{width:20px;height:20px;color:var(--aqua);flex:none;margin-top:2px}
+.crow b{color:var(--fg);font-weight:600}
+.crow a{text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
+.crow a:hover{text-decoration-color:var(--ember)}
+.contact__cta{display:flex;flex-wrap:wrap;gap:14px}
+.contact__map{position:relative;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  min-height:360px;height:100%;background:var(--surface-2)}
+.map-frame{width:100%;height:100%;min-height:360px;border:0;display:block}
+.map-link{position:absolute;left:14px;bottom:14px;z-index:2;background:rgba(12,10,8,.78);border:1px solid var(--line-2);
+  color:var(--fg);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;backdrop-filter:blur(6px);
+  display:inline-flex;align-items:center;gap:8px}
+.map-link:hover{border-color:var(--brass)}
+.map-link svg{width:15px;height:15px;color:var(--ember)}
+
+/* подвал */
+.foot{border-top:1px solid var(--line);padding-block:40px;margin-top:20px;color:var(--muted);font-size:14px}
+.foot__in{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.foot a:hover{color:var(--fg)}
+
+/* ------------------------------ АДАПТИВ ------------------------------- */
+@media (max-width:1040px){
+  .reviews{grid-template-columns:1fr 1fr}
+}
+@media (max-width:960px){
+  .nav{display:none}
+  .header__phone span{display:none}
+  .burger{display:flex}
+  .about{grid-template-columns:1fr}
+  .about__photo{aspect-ratio:16/10}
+  .zones{grid-template-columns:1fr}
+  .extras{grid-template-columns:1fr}
+  .contact{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .facts{grid-template-columns:1fr}
+  .reviews{grid-template-columns:1fr}
+  .carousel__viewport{aspect-ratio:4/3}
+  .carousel__btn{width:40px;height:40px}
+  .thermo{right:6px}
+  .thermo__ticks{display:none}
+  .thermo__tube{height:150px;width:6px}
+  .thermo__read{font-size:11px;min-width:46px;padding:2px 7px}
+  .thermo__bulb{width:14px;height:14px}
+  .prices th,.prices td{padding:13px 12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;scroll-behavior:auto}
+  .btn:hover,.zone:hover{transform:none}
+  .carousel__track{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- атмосфера: тёплый верх ↔ холодный низ, меняется по прокрутке -->
+<div class="atmos" aria-hidden="true">
+  <div class="atmos__hot" id="atmosHot"></div>
+  <div class="atmos__cold" id="atmosCold"></div>
+</div>
+<canvas class="steam" id="steam" aria-hidden="true"></canvas>
+
+<!-- термометр печи -->
+<aside class="thermo" id="thermo" aria-hidden="true">
+  <span class="thermo__read" id="thermoRead">+90°</span>
+  <div class="thermo__body">
+    <div class="thermo__ticks">
+      <span>+90</span><span>+60</span><span>+30</span><span>0</span><span>−5</span>
+    </div>
+    <div class="thermo__tube"><div class="thermo__mercury" id="mercury"></div></div>
+  </div>
+  <div class="thermo__bulb" id="bulb"></div>
+</aside>
+
+<header class="header">
+  <div class="wrap header__in">
+    <a class="logo" href="#top" aria-label="LUX — на главную">
+      <span class="logo__mark">LUX</span>
+      <span class="logo__sub">баня · Снежинск</span>
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#about">Печь</a>
+      <a href="#zones">Пар</a>
+      <a href="#prices">Цены</a>
+      <a href="#gallery">Галерея</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#contact">Контакты</a>
+    </nav>
+    <a class="header__phone" href="tel:+73514649549">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.4 2.1L8 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2Z"/></svg>
+      <span>+7 (35146) 4-95-49</span>
+    </a>
+    <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="mnav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+<nav class="mnav" id="mnav" aria-label="Мобильное меню">
+  <a href="#about">Печь</a>
+  <a href="#zones">Пар</a>
+  <a href="#prices">Цены</a>
+  <a href="#gallery">Галерея</a>
+  <a href="#reviews">Отзывы</a>
+  <a href="#contact">Контакты</a>
+</nav>
+
+<main id="top">
+
+  <!-- ============================== ГЕРОЙ ============================== -->
+  <section class="hero">
+    <div class="hero__bg" aria-hidden="true"></div>
+    <div class="hero__veil" aria-hidden="true"></div>
+    <div class="wrap hero__in">
+      <span class="temp">+90° · сердце печи</span>
+      <h1>Всё начинается<br>с <em>раскалённых камней</em></h1>
+      <p class="lead">Турецкий хаммам, европейская сауна, бассейн и купель. Баня LUX в Снежинске — жар, из которого не хочется выходить.</p>
+      <div class="hero__cta">
+        <a class="btn btn--hot" href="#contact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          Забронировать
+        </a>
+        <a class="btn btn--ghost" href="tel:+73514649549">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.4 2.1L8 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2Z"/></svg>
+          Позвонить
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== ПЕЧЬ ============================== -->
+  <section class="sec sec--top" id="about">
+    <div class="wrap">
+      <div class="about">
+        <div>
+          <span class="temp">+70° · печь и пар</span>
+          <h2 style="margin-top:14px">Мы топим по-настоящему</h2>
+          <blockquote>«Печь, ковш воды и тишина. Час, когда ничего не нужно решать.»</blockquote>
+          <p class="lead" style="margin-top:24px">LUX — это тёплое дерево, мягкий свет и запах кедра. Большая парилка, просторный бассейн и место, где можно собраться всей компанией. Просто приходите — остальное мы уже растопили.</p>
+          <div class="facts">
+            <div class="fact"><b>90°</b><span>жар в сауне</span></div>
+            <div class="fact"><b>−5°</b><span>холодная купель</span></div>
+            <div class="fact"><b>с 12:00</b><span>работаем каждый день</span></div>
+          </div>
+        </div>
+        <figure class="about__photo">
+          <img src="img/g3.jpg" alt="Внутри бани LUX" loading="lazy" decoding="async" width="1600" height="901">
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="rule"></div></div>
+
+  <!-- ============================== ПАР / ЗАЛЫ ============================== -->
+  <section class="sec" id="zones">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <span class="temp">пар</span>
+          <h2 style="margin-top:12px">Два характера жара</h2>
+        </div>
+        <p class="lead" style="max-width:38ch">Влажный турецкий пар или сухая европейская сауна — выбирайте по настроению.</p>
+      </div>
+      <div class="zones">
+        <article class="zone zone--steam">
+          <svg class="zone__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21c-2 0-3-1.4-3-3 0-2 1.5-3 1.5-5S5 9 6.5 7.5C8 6 9 4 9 1c2 2 3.5 4.5 3.5 7.5 0 1-.3 2-.8 2.8"/><path d="M14 21c2.5 0 4-1.8 4-4 0-3-2.5-4.5-2.5-7.5 0-1.5.5-2.8 1.5-4 1 2 2 4 2 6.5 0 1.5-.5 3-1.2 4.2"/></svg>
+          <h3>Турецкий хаммам</h3>
+          <p>Мягкий влажный пар, тёплый мрамор и расслабление до самого вечера. Идеально для первого раза и для тех, кто дышит в парилке спокойно.</p>
+          <div class="zone__price">1 300–1 500 ₽ <small>/ час</small></div>
+        </article>
+        <article class="zone zone--hot">
+          <svg class="zone__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c0 3-3 4-3 7a3 3 0 0 0 6 0c0-1.5-1-2.5-1-4 2 1 4 3.5 4 7a6 6 0 0 1-12 0c0-4 3-6 6-10Z"/></svg>
+          <h3>Европейская сауна</h3>
+          <p>Сухой жар до 90°, кедровые полки и густой пар от камней. Для тех, кто любит посильнее и выходит «заново собранным».</p>
+          <div class="zone__price">1 500–2 000 ₽ <small>/ час</small></div>
+        </article>
+      </div>
+
+      <div class="extras">
+        <div class="extra"><b>Дубовый веник</b><span>300 ₽</span></div>
+        <div class="extra"><b>Шапочка для бани</b><span>150 ₽</span></div>
+        <div class="extra"><b>Аренда комплекта простыней</b><span>500 ₽</span></div>
+      </div>
+
+      <!-- TODO(заказчик): подтвердить список удобств -->
+      <div class="facil">
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0M2 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg> Бассейн</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Музыка и колонки</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V8M4 8a4 4 0 0 1 8 0v13M12 21V8a4 4 0 0 1 8 0v13M2 21h20"/></svg> Шкафчики для переодевания</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8ZM16 9h1.5a3 3 0 0 1 0 6H16M6 4v1M10 3v2"/></svg> Чай и посуда</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="rule"></div></div>
+
+  <!-- ============================== ЦЕНЫ ============================== -->
+  <section class="sec" id="prices">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <span class="temp">цены</span>
+          <h2 style="margin-top:12px">Платите за время</h2>
+        </div>
+        <p class="lead" style="max-width:36ch">Стоимость зависит от зала, дня недели и времени. Точную сумму подскажем по телефону.</p>
+      </div>
+      <!-- TODO(заказчик): подтвердить прайс и минимальный заказ -->
+      <div class="price-wrap">
+        <table class="prices">
+          <thead>
+            <tr><th>Зал</th><th>Стоимость</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Турецкий хаммам<small>влажный пар</small></td><td>1 300–1 500 ₽ / час</td></tr>
+            <tr><td>Европейская сауна<small>сухой жар, до 90°</small></td><td>1 500–2 000 ₽ / час</td></tr>
+            <tr><td>Дубовый веник</td><td>300 ₽</td></tr>
+            <tr><td>Шапочка для бани</td><td>150 ₽</td></tr>
+            <tr><td>Аренда комплекта простыней</td><td>500 ₽</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="price-note">Действуют скидки в дневное время и для постоянных гостей. Свободное время и бронь — по телефону <a href="tel:+73514649549">+7 (35146) 4-95-49</a> или <a href="https://vk.ru/lux_snz" target="_blank" rel="noopener">во ВКонтакте</a>.</p>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="rule"></div></div>
+
+  <!-- ============================== ГАЛЕРЕЯ-КАРУСЕЛЬ ============================== -->
+  <section class="sec" id="gallery">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <span class="temp">внутри</span>
+          <h2 style="margin-top:12px">Как у нас внутри</h2>
+        </div>
+        <p class="lead" style="max-width:34ch">Фото листаются сами — или тяните вбок.</p>
+      </div>
+      <!-- Фото обработаны под фирменную палитру (process-photos.py) -->
+      <div class="carousel" id="carousel" role="region" aria-roledescription="карусель"
+           aria-label="Фотографии бани LUX" tabindex="0">
+        <div class="carousel__viewport">
+          <div class="carousel__track" id="track">
+            <figure class="carousel__slide" style="--bg:url('img/g1.jpg')">
+              <img src="img/g1.jpg" alt="Парилка бани LUX" width="1600" height="901" decoding="async">
+              <figcaption class="carousel__cap"><b>Парилка</b></figcaption>
+            </figure>
+            <figure class="carousel__slide" style="--bg:url('img/g2.jpg')">
+              <img src="img/g2.jpg" alt="Бассейн бани LUX" width="1600" height="901" decoding="async">
+              <figcaption class="carousel__cap"><b>Бассейн</b></figcaption>
+            </figure>
+            <figure class="carousel__slide" style="--bg:url('img/g3.jpg')">
+              <img src="img/g3.jpg" alt="Комната отдыха бани LUX" width="1600" height="901" decoding="async">
+              <figcaption class="carousel__cap"><b>Комната отдыха</b></figcaption>
+            </figure>
+            <figure class="carousel__slide" style="--bg:url('img/g4.jpg')">
+              <img src="img/g4.jpg" alt="Баня LUX" width="1280" height="720" decoding="async">
+              <figcaption class="carousel__cap"><b>Отдых</b></figcaption>
+            </figure>
+            <figure class="carousel__slide" style="--bg:url('img/g5.jpg')">
+              <img src="img/g5.jpg" alt="Баня LUX" width="720" height="1280" decoding="async">
+              <figcaption class="carousel__cap"><b>Детали</b></figcaption>
+            </figure>
+            <figure class="carousel__slide" style="--bg:url('img/g6.jpg')">
+              <img src="img/g6.jpg" alt="Сауна LUX" width="901" height="1600" decoding="async">
+              <figcaption class="carousel__cap"><b>Сауна</b></figcaption>
+            </figure>
+          </div>
+          <button class="carousel__btn carousel__btn--prev" id="cPrev" type="button" aria-label="Предыдущее фото">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button class="carousel__btn carousel__btn--next" id="cNext" type="button" aria-label="Следующее фото">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <div class="carousel__dots" id="cDots" role="tablist" aria-label="Выбор фото"></div>
+          <div class="carousel__count" id="cCount">01 / 06</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="rule"></div></div>
+
+  <!-- ============================== ОТЗЫВЫ ============================== -->
+  <section class="sec" id="reviews">
+    <div class="wrap">
+      <div class="sec__head">
+        <div>
+          <span class="temp">гости</span>
+          <h2 style="margin-top:12px">Что говорят гости</h2>
+        </div>
+      </div>
+      <div class="reviews">
+        <blockquote class="review">
+          <p>«Все круто. В парилке нужная температура. От бассейна дети были в восторге. Фишка с колонками тоже очень понравилась.»</p>
+          <cite>— Андрей</cite>
+        </blockquote>
+        <blockquote class="review">
+          <p>«Всё просто супер. Помещение большое, музыка в бане и в самой комнате, бассейн просторный и глубокий.»</p>
+          <cite>— Кирилл</cite>
+        </blockquote>
+        <blockquote class="review">
+          <p>«Очень понравилось банька. Очень большая парилка и тёплый просторный бассейн. Удобные шкафчики, где можно переодеться. Есть чай и посуда.»</p>
+          <cite>— Евгений</cite>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== КОНТАКТЫ ============================== -->
+  <section class="sec" id="contact">
+    <div class="wrap">
+      <div class="contact">
+        <div>
+          <span class="temp">−5° · купель</span>
+          <h2 style="margin-top:12px">Остынь — и приезжай</h2>
+          <p class="lead">Бронь принимаем по телефону и во ВКонтакте. В пятницу и выходные места разбирают заранее — лучше предупредить за пару дней.</p>
+          <div class="crows">
+            <div class="crow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.4-7-11a7 7 0 1 1 14 0c0 5.6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+              <span><b>Адрес:</b> г. Снежинск, ул. Сиреневая, 5</span>
+            </div>
+            <div class="crow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <!-- TODO(заказчик): уточнить время закрытия -->
+              <span><b>Часы:</b> ежедневно, с 12:00 · по предварительной записи</span>
+            </div>
+            <div class="crow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.4 2.1L8 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2Z"/></svg>
+              <span><b>Телефон:</b> <a href="tel:+73514649549">+7 (35146) 4-95-49</a></span>
+            </div>
+            <div class="crow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1Z"/></svg>
+              <span><b>Соцсети:</b> <a href="https://vk.ru/lux_snz" target="_blank" rel="noopener">ВКонтакте — фото и запись</a></span>
+            </div>
+          </div>
+          <div class="contact__cta">
+            <a class="btn btn--hot" href="tel:+73514649549">Позвонить и забронировать</a>
+            <a class="btn btn--ghost" href="https://vk.ru/lux_snz" target="_blank" rel="noopener">Написать во ВКонтакте</a>
+          </div>
+        </div>
+        <div class="contact__map">
+          <!-- карта 2ГИС: Баня на Сиреневой, 5 -->
+          <iframe class="map-frame" title="Баня LUX на карте — Сиреневая, 5"
+            src="https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22pos%22%3A%7B%22lat%22%3A56.070889%2C%22lon%22%3A60.768834%2C%22zoom%22%3A17%7D%2C%22opt%22%3A%7B%22city%22%3A%22snezhinsk%22%7D%2C%22org%22%3A%2270000001103569369%22%7D"
+            loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <a class="map-link" href="https://2gis.ru/snezhinsk/firm/70000001103569369" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.4-7-11a7 7 0 1 1 14 0c0 5.6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg>
+            Открыть в 2ГИС
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <span>© <span id="year"></span> LUX — баня, Снежинск, ул. Сиреневая, 5</span>
+    <span>Сделано с уважением к пару · <a href="https://vk.ru/lux_snz" target="_blank" rel="noopener">ВКонтакте</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* мобильное меню */
+  var b = document.getElementById('burger'), m = document.getElementById('mnav');
+  if (b && m){
+    b.addEventListener('click', function(){
+      var open = m.hasAttribute('data-open');
+      if (open){ m.removeAttribute('data-open'); } else { m.setAttribute('data-open',''); }
+      b.setAttribute('aria-expanded', String(!open));
+    });
+    m.addEventListener('click', function(e){
+      if (e.target.tagName === 'A'){ m.removeAttribute('data-open'); b.setAttribute('aria-expanded','false'); }
+    });
+  }
+
+  /* печь: атмосфера + термометр в зависимости от прокрутки */
+  var hot = document.getElementById('atmosHot');
+  var cold = document.getElementById('atmosCold');
+  var mercury = document.getElementById('mercury');
+  var bulb = document.getElementById('bulb');
+  var read = document.getElementById('thermoRead');
+
+  var HOT = [227,164,90];
+  var COLD = [99,189,178];
+  var T_TOP = 90, T_BOT = -5;
+  var heatVal = 1; /* 1 — жарко (много пара), 0 — холодно */
+
+  function mix(a, b, t){
+    return 'rgb(' + Math.round(a[0]+(b[0]-a[0])*t) + ',' +
+                    Math.round(a[1]+(b[1]-a[1])*t) + ',' +
+                    Math.round(a[2]+(b[2]-a[2])*t) + ')';
+  }
+
+  var ticking = false;
+  function update(){
+    ticking = false;
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - window.innerHeight;
+    var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+
+    heatVal = 1 - p;
+    if (hot)  hot.style.opacity  = String(1 - p);
+    if (cold) cold.style.opacity = String(p);
+
+    var c = mix(HOT, COLD, p);
+    if (mercury){ mercury.style.height = ((1 - p) * 100) + '%'; mercury.style.background = c; mercury.style.boxShadow = '0 0 14px ' + c; }
+    if (bulb){ bulb.style.background = c; bulb.style.boxShadow = '0 0 16px ' + c; }
+    if (read){
+      var t = Math.round(T_TOP + (T_BOT - T_TOP) * p);
+      read.textContent = (t > 0 ? '+' : t < 0 ? '−' : '') + Math.abs(t) + '°';
+    }
+  }
+  function onScroll(){ if (!ticking){ ticking = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  update();
+
+  /* анимированный пар на фоне */
+  var steam = document.getElementById('steam');
+  if (steam && steam.getContext){
+    var sctx = steam.getContext('2d');
+    var reduceSteam = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    var sw = 0, sh = 0, parts = [], stime = 0, sprite = null;
+
+    (function(){
+      var s = 160, c = document.createElement('canvas');
+      c.width = c.height = s;
+      var x = c.getContext('2d');
+      var g = x.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+      g.addColorStop(0, 'rgba(246,240,231,0.50)');
+      g.addColorStop(0.45, 'rgba(232,222,206,0.16)');
+      g.addColorStop(1, 'rgba(232,222,206,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, s, s);
+      sprite = c;
+    })();
+
+    function mkParticle(bottom){
+      return {
+        x: Math.random() * sw,
+        y: bottom ? sh + Math.random() * sh * 0.5 : Math.random() * sh,
+        r: 70 + Math.random() * 130,
+        a: 0.026 + Math.random() * 0.062,
+        vy: -(0.12 + Math.random() * 0.34),
+        sway: 0.15 + Math.random() * 0.4,
+        drift: (Math.random() - 0.5) * 0.16,
+        seed: Math.random() * Math.PI * 2
+      };
+    }
+    function resizeSteam(){
+      sw = steam.clientWidth; sh = steam.clientHeight;
+      steam.width = Math.max(1, Math.round(sw * dpr));
+      steam.height = Math.max(1, Math.round(sh * dpr));
+      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.max(24, Math.min(68, Math.round(sw / 23)));
+      parts = [];
+      for (var i = 0; i < n; i++) parts.push(mkParticle(false));
+    }
+    function steamFrame(){
+      stime += 16;
+      sctx.clearRect(0, 0, sw, sh);
+      sctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < parts.length; i++){
+        var p = parts[i];
+        p.y += p.vy;
+        p.x += Math.sin(stime * 0.0006 + p.seed) * p.sway + p.drift;
+        if (p.y + p.r < 0){ parts[i] = mkParticle(true); continue; }
+        sctx.globalAlpha = Math.max(0, p.a * heatVal);
+        sctx.drawImage(sprite, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+      }
+      sctx.globalAlpha = 1;
+      if (!reduceSteam) requestAnimationFrame(steamFrame);
+    }
+    resizeSteam();
+    steamFrame();
+    window.addEventListener('resize', function(){ resizeSteam(); if (reduceSteam) steamFrame(); });
+  }
+
+  /* галерея-карусель: автопрокрутка + свайп */
+  var car = document.getElementById('carousel');
+  if (!car) return;
+  var track = document.getElementById('track');
+  var slides = Array.prototype.slice.call(track.children);
+  var dotsWrap = document.getElementById('cDots');
+  var count = document.getElementById('cCount');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var i = 0, timer = null;
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+  slides.forEach(function(_, idx){
+    var d = document.createElement('button');
+    d.type = 'button';
+    d.className = 'carousel__dot';
+    d.setAttribute('aria-label', 'Фото ' + (idx + 1));
+    d.addEventListener('click', function(){ go(idx); play(); });
+    dotsWrap.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function render(){
+    track.style.transform = 'translateX(' + (-i * 100) + '%)';
+    dots.forEach(function(d, idx){ d.setAttribute('aria-current', String(idx === i)); });
+    slides.forEach(function(s, idx){ s.setAttribute('aria-hidden', String(idx !== i)); });
+    if (count) count.textContent = pad(i + 1) + ' / ' + pad(slides.length);
+  }
+  function go(n){ i = (n % slides.length + slides.length) % slides.length; render(); }
+  function nextSlide(){ go(i + 1); }
+  function prevSlide(){ go(i - 1); }
+  function stop(){ if (timer){ clearInterval(timer); timer = null; } }
+  function play(){ if (reduce) return; stop(); timer = setInterval(nextSlide, 5000); }
+
+  document.getElementById('cNext').addEventListener('click', function(){ nextSlide(); play(); });
+  document.getElementById('cPrev').addEventListener('click', function(){ prevSlide(); play(); });
+
+  car.addEventListener('mouseenter', stop);
+  car.addEventListener('mouseleave', play);
+  car.addEventListener('focusin', stop);
+  car.addEventListener('focusout', play);
+  document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : play(); });
+  car.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft'){ prevSlide(); play(); }
+    else if (e.key === 'ArrowRight'){ nextSlide(); play(); }
+  });
+
+  /* свайп мышью/пальцем */
+  var startX = 0, dx = 0, dragging = false, width = 1;
+  function down(x){ dragging = true; startX = x; dx = 0; width = car.clientWidth || 1; stop(); track.style.transition = 'none'; }
+  function move(x){ if (!dragging) return; dx = x - startX; track.style.transform = 'translateX(calc(' + (-i * 100) + '% + ' + dx + 'px))'; }
+  function up(){
+    if (!dragging) return;
+    dragging = false;
+    track.style.transition = '';
+    if (Math.abs(dx) > width * 0.15){ dx < 0 ? nextSlide() : prevSlide(); } else { render(); }
+    play();
+  }
+  car.addEventListener('touchstart', function(e){ down(e.touches[0].clientX); }, {passive:true});
+  car.addEventListener('touchmove', function(e){ move(e.touches[0].clientX); }, {passive:true});
+  car.addEventListener('touchend', up);
+  car.addEventListener('mousedown', function(e){ e.preventDefault(); down(e.clientX); });
+  window.addEventListener('mousemove', function(e){ move(e.clientX); });
+  window.addEventListener('mouseup', up);
+
+  render();
+  play();
+})();
+</script>
+</body>
+</html>
